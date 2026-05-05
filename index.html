@@ -2,495 +2,64 @@
 <html lang="ar" dir="rtl">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
     <title>ShadMini AI · المساعد الذكي</title>
-    <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
-    <style>
-        :root {
-            --bg: #f6f7fb;
-            --sidebar-bg: #ffffff;
-            --chat-bg: #ffffff;
-            --user-msg: linear-gradient(135deg, #7c5cfc, #a688ff);
-            --ai-msg: #f0f2f5;
-            --text: #1a1a1a;
-            --text-secondary: #6b7280;
-            --border: #e5e7eb;
-            --accent: #7c5cfc;
-            --shadow: 0 10px 30px -10px rgba(0,0,0,0.08);
-            --radius: 24px;
-            --transition: 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-            --glass: rgba(255,255,255,0.7);
-            --backdrop: blur(15px);
-        }
-
-        .dark-mode {
-            --bg: #0b0f19;
-            --sidebar-bg: #131a2b;
-            --chat-bg: #131a2b;
-            --user-msg: linear-gradient(135deg, #4f46e5, #7c3aed);
-            --ai-msg: #1e293b;
-            --text: #f1f5f9;
-            --text-secondary: #94a3b8;
-            --border: #1e293b;
-            --glass: rgba(19, 26, 43, 0.7);
-        }
-
-        * { margin: 0; padding: 0; box-sizing: border-box; }
-        body {
-            font-family: 'Inter', 'Cairo', system-ui, -apple-system, sans-serif;
-            background: var(--bg);
-            color: var(--text);
-            display: flex;
-            height: 100vh; height: 100dvh;
-            overflow: hidden;
-            transition: background var(--transition), color var(--transition);
-        }
-
-        /* زر الهامبرغر للجوال */
-        .mobile-menu-btn {
-            display: none;
-            position: absolute;
-            top: 1.2rem; right: 1.2rem;
-            z-index: 30;
-            background: var(--glass); backdrop-filter: var(--backdrop);
-            border: 1px solid var(--border);
-            border-radius: 12px;
-            padding: 0.5rem 0.7rem;
-            font-size: 1.4rem;
-            cursor: pointer;
-            color: var(--text);
-            box-shadow: var(--shadow);
-        }
-
-        /* الشريط الجانبي */
-        .sidebar {
-            width: 290px;
-            background: var(--sidebar-bg);
-            border-left: 1px solid var(--border);
-            display: flex;
-            flex-direction: column;
-            padding: 1.5rem 1rem;
-            transition: transform var(--transition), background var(--transition);
-            z-index: 20;
-            height: 100%;
-        }
-        .sidebar-header {
-            display: flex; align-items: center; gap: 0.6rem;
-            margin-bottom: 1.8rem;
-        }
-        .logo {
-            background: linear-gradient(135deg, #7c5cfc, #e879f9);
-            -webkit-background-clip: text; -webkit-text-fill-color: transparent;
-            font-size: 2.4rem; font-weight: 800;
-        }
-        .sidebar-header h2 {
-            font-size: 1.4rem; font-weight: 700;
-            background: linear-gradient(135deg, #7c5cfc, #e879f9);
-            -webkit-background-clip: text; -webkit-text-fill-color: transparent;
-        }
-        #new-chat-btn {
-            background: var(--accent);
-            border: none; color: #fff;
-            padding: 0.8rem; border-radius: 14px;
-            font-weight: 600; font-size: 0.95rem;
-            cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 0.4rem;
-            margin-bottom: 1.2rem;
-            box-shadow: 0 4px 14px rgba(124,92,252,0.4);
-            transition: transform var(--transition);
-        }
-        #new-chat-btn:hover { transform: scale(1.02); }
-        .theme-toggle {
-            display: flex; align-items: center; gap: 0.5rem;
-            cursor: pointer; margin-bottom: 1rem;
-            color: var(--text-secondary); font-size: 0.9rem;
-        }
-        .chat-list {
-            flex: 1; overflow-y: auto; display: flex; flex-direction: column; gap: 0.4rem;
-        }
-        .chat-item {
-            padding: 0.7rem; border-radius: 12px;
-            cursor: pointer; background: var(--glass);
-            backdrop-filter: var(--backdrop);
-            display: flex; justify-content: space-between; align-items: center;
-            border: 1px solid transparent;
-            transition: all var(--transition);
-            font-size: 0.9rem;
-        }
-        .chat-item.active {
-            background: var(--accent); color: white;
-            border-color: var(--accent); box-shadow: 0 8px 20px rgba(124,92,252,0.3);
-        }
-        .chat-item .delete-btn { background: none; border: none; color: inherit; opacity: 0.7; cursor: pointer; font-size: 1rem; }
-        .chat-item .delete-btn:hover { opacity: 1; color: #ff5e7a; }
-
-        /* منطقة الدردشة */
-        .chat-area {
-            flex: 1; display: flex; flex-direction: column;
-            background: var(--chat-bg); margin: 0.5rem 0 0.5rem 0.5rem;
-            border-radius: var(--radius) 0 0 var(--radius);
-            box-shadow: var(--shadow); overflow: hidden;
-            transition: background var(--transition);
-        }
-        .chat-header {
-            padding: 1.2rem 1.8rem; border-bottom: 1px solid var(--border);
-            font-weight: 700; font-size: 1.2rem;
-            background: var(--glass); backdrop-filter: var(--backdrop);
-            display: flex; align-items: center;
-        }
-        .model-bar {
-            padding: 0.5rem 1.8rem; border-bottom: 1px solid var(--border);
-            background: var(--glass); backdrop-filter: var(--backdrop);
-            display: flex; align-items: center; gap: 0.8rem;
-        }
-        #model-select {
-            padding: 0.5rem 0.8rem;
-            border-radius: 10px;
-            background: var(--bg);
-            color: var(--text);
-            border: 1px solid var(--border);
-            font-size: 0.9rem;
-            cursor: pointer;
-            outline: none;
-        }
-        .messages-container {
-            flex: 1; overflow-y: auto;
-            padding: 1.8rem; display: flex;
-            flex-direction: column; gap: 1.2rem;
-        }
-        .message {
-            max-width: 85%; padding: 0.9rem 1.2rem;
-            border-radius: 1.8rem; line-height: 1.6;
-            position: relative; animation: fadeSlide 0.25s ease-out;
-            font-size: 0.95rem;
-        }
-        .message.user {
-            align-self: flex-end;
-            background: var(--user-msg); color: white;
-            border-bottom-right-radius: 0.6rem;
-            box-shadow: 0 4px 15px rgba(124,92,252,0.3);
-        }
-        .message.ai {
-            align-self: flex-start;
-            background: var(--ai-msg); color: var(--text);
-            border-bottom-left-radius: 0.6rem;
-        }
-        .msg-actions {
-            display: flex; gap: 0.3rem; margin-top: 0.4rem;
-            justify-content: flex-end;
-        }
-        .msg-actions button {
-            background: rgba(255,255,255,0.15);
-            border: none; color: inherit; padding: 0.2rem 0.6rem;
-            border-radius: 20px; cursor: pointer; font-size: 0.75rem;
-            transition: background var(--transition);
-        }
-        .msg-actions button:hover { background: rgba(255,255,255,0.3); }
-        .input-area {
-            display: flex; padding: 1rem 1.8rem;
-            gap: 0.7rem; border-top: 1px solid var(--border);
-            background: var(--glass); backdrop-filter: var(--backdrop);
-        }
-        #message-input {
-            flex: 1;
-            background: var(--bg); border: 1px solid var(--border);
-            border-radius: 30px; padding: 0.8rem 1.4rem;
-            color: var(--text); font-size: 1rem; resize: none;
-            outline: none; font-family: inherit;
-        }
-        #send-btn, #stop-btn {
-            background: var(--accent); border: none;
-            color: white; padding: 0.7rem 1.4rem;
-            border-radius: 30px; font-weight: 600;
-            cursor: pointer; transition: transform var(--transition);
-        }
-        #stop-btn { background: #ef4444; display: none; }
-
-        @keyframes fadeSlide {
-            from { opacity: 0; transform: translateY(8px); }
-            to { opacity: 1; transform: translateY(0); }
-        }
-
-        /* التجاوب مع الجوال */
-        @media (max-width: 768px) {
-            .sidebar {
-                position: fixed; top: 0; right: 0; bottom: 0;
-                transform: translateX(100%); width: 85%;
-                box-shadow: -10px 0 30px rgba(0,0,0,0.3);
-                z-index: 25;
-            }
-            .sidebar.open { transform: translateX(0); }
-            .chat-area { margin: 0; border-radius: 0; }
-            .mobile-menu-btn { display: block; }
-        }
-    </style>
+    <link rel="stylesheet" href="style.css">
+    <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js">
+    </script>
 </head>
 <body>
 
-    <button class="mobile-menu-btn" id="menu-toggle">☰</button>
+    <button class="menu-btn" id="menuBtn">☰</button>
 
-    <!-- الشريط الجانبي -->
-    <div class="sidebar" id="sidebar">
-        <div class="sidebar-header">
-            <span class="logo">✦</span>
+    <aside class="sidebar" id="sidebar">
+        <div class="sidebar-head">
+            <span class="dot">✦</span>
             <h2>ShadMini AI</h2>
         </div>
-        <div class="theme-toggle" id="theme-toggle">
-            <span>🌙</span> <span>الوضع الداكن</span>
+        <div class="theme-row" id="themeToggle">
+            <span>🌙</span><span>المظهر الداكن</span>
         </div>
-        <button id="new-chat-btn">✨ محادثة جديدة</button>
-        <div class="chat-list" id="chat-list"></div>
-    </div>
+        <button class="btn-new" id="newChatBtn">✨ محادثة جديدة</button>
+        <div class="chat-list" id="chatList"></div>
+    </aside>
 
-    <!-- منطقة الدردشة -->
-    <div class="chat-area">
-        <div class="chat-header" id="chat-title">محادثة جديدة</div>
+    <main class="main">
+        <div class="topbar" id="chatTitle">محادثة جديدة</div>
         <div class="model-bar">
-            <span style="font-size:0.9rem;">🧠</span>
-            <select id="model-select">
+            <span>🧠</span>
+            <select id="modelSelect">
                 <optgroup label="محادثة عامة">
-                    <option value="gpt-4o-mini">⚡ GPT-4o Mini (سريع)</option>
-                    <option value="deepseek-r1">🧠 DeepSeek R1 (تفكير عميق)</option>
-                    <option value="llama-3.1-8b">📝 Llama 3.1 8B (خفيف)</option>
-                    <option value="gpt-4.1-nano">⚡ GPT-4.1 Nano (فائق السرعة)</option>
-                    <option value="aya-expanse-8b">🌍 Aya Expanse (متعدد اللغات)</option>
-                    <option value="jais-30b">🇸🇦 Jais 30B (عربي)</option>
+                    <option value="gpt-4o-mini">⚡ GPT-4o Mini</option>
+                    <option value="deepseek-r1">🧠 DeepSeek R1</option>
+                    <option value="llama-3.1-8b">📝 Llama 3.1 8B</option>
+                    <option value="gpt-4.1-nano">⚡ GPT-4.1 Nano</option>
+                    <option value="aya-expanse-8b">🌍 Aya Expanse</option>
+                    <option value="jais-30b">🇸🇦 Jais 30B</option>
                 </optgroup>
                 <optgroup label="تطوير وبرمجة">
-                    <option value="llama-3.3-70b">🦙 Llama 3.3 70B (كود)</option>
-                    <option value="deepseek-coder-v2">💻 DeepSeek Coder V2 (مطور)</option>
-                    <option value="codestral">🛠️ Codestral (فول-ستاك)</option>
-                    <option value="phi-3.5-moe">🧩 Phi-3.5 MoE (معقد)</option>
-                    <option value="mistral-large">🌪️ Mistral Large (ديف أوبس)</option>
-                    <option value="phi-3.5-mini">📱 Phi-3.5 Mini (موبايل)</option>
+                    <option value="llama-3.3-70b">🦙 Llama 3.3 70B</option>
+                    <option value="deepseek-coder-v2">💻 DeepSeek Coder V2</option>
+                    <option value="codestral">🛠️ Codestral</option>
+                    <option value="phi-3.5-moe">🧩 Phi-3.5 MoE</option>
+                    <option value="mistral-large">🌪️ Mistral Large</option>
+                    <option value="phi-3.5-mini">📱 Phi-3.5 Mini</option>
                 </optgroup>
                 <optgroup label="بيانات وأمن">
-                    <option value="gemma-2-27b">📊 Gemma 2 27B (بيانات)</option>
-                    <option value="phi-4">🔬 Phi-4 (علوم)</option>
-                    <option value="cohere-command-r7b">🔒 Command R7B (أمن سيبراني)</option>
+                    <option value="gemma-2-27b">📊 Gemma 2 27B</option>
+                    <option value="phi-4">🔬 Phi-4</option>
+                    <option value="cohere-command-r7b">🔒 Command R7B</option>
                 </optgroup>
             </select>
         </div>
-
-        <div class="messages-container" id="messages"></div>
-
-        <div class="input-area">
-            <textarea id="message-input" rows="1" placeholder="اكتب رسالتك..."></textarea>
-            <button id="send-btn">➤</button>
-            <button id="stop-btn">■ إيقاف</button>
+        <div class="msgs" id="messages"></div>
+        <div class="input-row">
+            <textarea id="msgInput" rows="1" placeholder="اكتب رسالتك..."></textarea>
+            <button class="btn-send" id="sendBtn">➤</button>
+            <button class="btn-stop" id="stopBtn">■</button>
         </div>
-    </div>
+    </main>
 
-    <script>
-        marked.setOptions({ breaks: true, gfm: true });
-
-        const STORAGE_KEY = 'shadmini_chats_v4';
-        let chats = JSON.parse(localStorage.getItem(STORAGE_KEY) || '{}');
-        let currentChatId = null;
-        let abortTyping = false; // للتحكم بمؤثر الكتابة
-
-        const elements = {
-            chatList: document.getElementById('chat-list'),
-            messages: document.getElementById('messages'),
-            chatTitle: document.getElementById('chat-title'),
-            messageInput: document.getElementById('message-input'),
-            sendBtn: document.getElementById('send-btn'),
-            stopBtn: document.getElementById('stop-btn'),
-            newChatBtn: document.getElementById('new-chat-btn'),
-            modelSelect: document.getElementById('model-select'),
-            menuToggle: document.getElementById('menu-toggle'),
-            sidebar: document.getElementById('sidebar'),
-            themeToggle: document.getElementById('theme-toggle'),
-        };
-
-        function save() { localStorage.setItem(STORAGE_KEY, JSON.stringify(chats)); }
-        function generateId() { return Date.now().toString(36) + Math.random().toString(36).substr(2,6); }
-
-        function renderChatList() {
-            elements.chatList.innerHTML = '';
-            Object.entries(chats).sort((a,b) => (b[1].lastUpdated||0)-(a[1].lastUpdated||0)).forEach(([id, chat]) => {
-                const el = document.createElement('div');
-                el.className = 'chat-item' + (id===currentChatId?' active':'');
-                el.innerHTML = `<span>${chat.title||'محادثة'}</span><button class="delete-btn">🗑️</button>`;
-                el.onclick = (e) => {
-                    if(e.target.classList.contains('delete-btn')) { e.stopPropagation(); deleteChat(id); }
-                    else loadChat(id);
-                };
-                elements.chatList.appendChild(el);
-            });
-        }
-
-        function loadChat(id) {
-            currentChatId = id;
-            const chat = chats[id];
-            elements.chatTitle.textContent = chat?.title || 'محادثة';
-            renderMessages(chat?.messages || []);
-            renderChatList();
-            elements.sidebar.classList.remove('open');
-        }
-
-        function renderMessages(msgs) {
-            elements.messages.innerHTML = '';
-            msgs.forEach((m, idx) => {
-                const div = document.createElement('div');
-                div.className = `message ${m.role}`;
-                div.innerHTML = marked.parse(m.content);
-                if(m.role==='ai') {
-                    const actions = document.createElement('div');
-                    actions.className = 'msg-actions';
-                    actions.innerHTML = `<button class="copy-btn">📋</button><button class="regen-btn">🔄</button>`;
-                    div.appendChild(actions);
-                    div.querySelector('.copy-btn').onclick = () => navigator.clipboard.writeText(m.content);
-                    div.querySelector('.regen-btn').onclick = () => regenerate(idx);
-                }
-                elements.messages.appendChild(div);
-            });
-            elements.messages.scrollTop = elements.messages.scrollHeight;
-        }
-
-        async function typeEffect(element, fullText, speed = 15) {
-            element.innerHTML = '';
-            abortTyping = false;
-            const words = fullText.split(/(\s+)/);
-            let i=0;
-            return new Promise((resolve) => {
-                function type() {
-                    if(abortTyping || i>=words.length) {
-                        if(abortTyping) element.innerHTML += ' ⏹️';
-                        resolve();
-                        return;
-                    }
-                    element.innerHTML += words[i];
-                    i++;
-                    elements.messages.scrollTop = elements.messages.scrollHeight;
-                    setTimeout(type, speed);
-                }
-                type();
-            });
-        }
-
-        async function sendMessage(contentOverride = null) {
-            const text = contentOverride || elements.messageInput.value.trim();
-            if(!text) return;
-
-            if(!currentChatId || !chats[currentChatId]) createChat();
-            const chat = chats[currentChatId];
-            chat.messages.push({ role:'user', content: text });
-            chat.lastUpdated = Date.now();
-            if(chat.title==='محادثة جديدة') {
-                chat.title = text.substring(0,30)+(text.length>30?'…':'');
-                elements.chatTitle.textContent = chat.title;
-            }
-            save(); renderMessages(chat.messages); renderChatList();
-            if(!contentOverride) elements.messageInput.value = '';
-
-            // إنشاء فقاعة AI فارغة
-            const aiDiv = document.createElement('div');
-            aiDiv.className = 'message ai';
-            aiDiv.textContent = '⏳';
-            elements.messages.appendChild(aiDiv);
-            elements.messages.scrollTop = elements.messages.scrollHeight;
-            elements.sendBtn.style.display = 'none';
-            elements.stopBtn.style.display = 'inline-block';
-
-            try {
-                const res = await fetch('/api/ai', {
-                    method:'POST',
-                    headers:{'Content-Type':'application/json'},
-                    body: JSON.stringify({ messages: chat.messages.map(m=>({role:m.role,content:m.content})), model: elements.modelSelect.value })
-                });
-                if(!res.ok) throw new Error(`خطأ ${res.status}`);
-                const data = await res.json();
-                const aiText = data.result || '⚠️ رد فارغ';
-                
-                // تأثير الكتابة
-                await typeEffect(aiDiv, aiText, 20);
-                if(!abortTyping) {
-                    chat.messages.push({ role:'assistant', content: aiText });
-                    chat.lastUpdated = Date.now();
-                    save(); renderMessages(chat.messages); renderChatList();
-                } else {
-                    // لو المستخدم أوقف التوليد نحفظ الجزء المعروض فقط
-                    chat.messages.push({ role:'assistant', content: aiDiv.textContent.replace(' ⏹️','') });
-                    save();
-                }
-            } catch(e) {
-                aiDiv.textContent = '❌ خطأ: '+e.message;
-            } finally {
-                elements.sendBtn.style.display = 'inline-block';
-                elements.stopBtn.style.display = 'none';
-                abortTyping = false;
-            }
-        }
-
-        function stopTyping() {
-            abortTyping = true;
-            elements.sendBtn.style.display = 'inline-block';
-            elements.stopBtn.style.display = 'none';
-        }
-
-        async function regenerate(index) {
-            if(!currentChatId) return;
-            const chat = chats[currentChatId];
-            chat.messages = chat.messages.slice(0, index);
-            save(); renderMessages(chat.messages);
-            if(chat.messages.length>0 && chat.messages[chat.messages.length-1].role==='user')
-                await sendMessage(chat.messages[chat.messages.length-1].content);
-        }
-
-        function createChat() {
-            const id = generateId();
-            chats[id] = { title:'محادثة جديدة', messages:[], lastUpdated: Date.now() };
-            save(); currentChatId = id;
-            renderMessages([]); renderChatList();
-            elements.chatTitle.textContent = 'محادثة جديدة';
-            elements.messageInput.focus();
-        }
-
-        function deleteChat(id) {
-            if(!confirm('حذف المحادثة؟')) return;
-            delete chats[id]; save();
-            const ids = Object.keys(chats);
-            if(currentChatId===id) ids.length ? loadChat(ids[ids.length-1]) : (currentChatId=null, elements.chatTitle.textContent='محادثة جديدة', renderMessages([]));
-            renderChatList();
-        }
-
-        // الأحداث
-        elements.sendBtn.addEventListener('click', ()=>sendMessage());
-        elements.stopBtn.addEventListener('click', stopTyping);
-        elements.newChatBtn.addEventListener('click', createChat);
-        elements.menuToggle.addEventListener('click', ()=> elements.sidebar.classList.toggle('open'));
-        elements.messageInput.addEventListener('keydown', (e)=> {
-            if(e.key==='Enter'&&!e.shiftKey) { e.preventDefault(); sendMessage(); }
-        });
-        elements.themeToggle.addEventListener('click', ()=>{
-            document.body.classList.toggle('dark-mode');
-            const isDark = document.body.classList.contains('dark-mode');
-            elements.themeToggle.innerHTML = isDark ? '<span>☀️</span> <span>الوضع الفاتح</span>' : '<span>🌙</span> <span>الوضع الداكن</span>';
-            localStorage.setItem('theme', isDark?'dark':'light');
-        });
-        elements.chatTitle.addEventListener('dblclick', ()=>{
-            const newTitle = prompt('اسم جديد:', elements.chatTitle.textContent);
-            if(newTitle && currentChatId) { chats[currentChatId].title = newTitle; save(); elements.chatTitle.textContent = newTitle; renderChatList(); }
-        });
-        // إغلاق الشريط الجانبي عند النقر خارجه
-        document.addEventListener('click', (e)=>{
-            if(window.innerWidth<=768 && !elements.sidebar.contains(e.target) && e.target!==elements.menuToggle)
-                elements.sidebar.classList.remove('open');
-        });
-
-        // التهيئة
-        (()=>{
-            if(localStorage.getItem('theme')==='dark') {
-                document.body.classList.add('dark-mode');
-                elements.themeToggle.innerHTML = '<span>☀️</span> <span>الوضع الفاتح</span>';
-            }
-            const ids = Object.keys(chats);
-            if(ids.length) {
-                const last = ids.sort((a,b)=>(chats[b].lastUpdated||0)-(chats[a].lastUpdated||0))[0];
-                loadChat(last);
-            } else createChat();
-            renderChatList();
-        })();
-    </script>
+    <script src="script.js"></script>
 </body>
 </html>

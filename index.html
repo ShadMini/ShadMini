@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>مساعدي الذكي</title>
+    <style>
+        body { font-family: sans-serif; max-width: 600px; margin: 2rem auto; padding: 1rem; }
+        form { display: flex; flex-direction: column; gap: 0.5rem; }
+        textarea, button { padding: 0.5rem; font-size: 1rem; }
+        #response { margin-top: 1rem; padding: 1rem; background-color: #f0f0f0; border-radius: 0.5rem; white-space: pre-wrap; }
+    </style>
+</head>
+<body>
+    <h1>مساعدي الذكي 🚀</h1>
+    <form id="ai-form">
+        <label for="prompt">اطرح سؤالك هنا:</label>
+        <textarea id="prompt" name="prompt" rows="4" placeholder="اكتب سؤالك..."></textarea>
+        <button type="submit">إرسال</button>
+    </form>
+    <div id="response"></div>
+
+    <script>
+        document.getElementById('ai-form').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const prompt = document.getElementById('prompt').value;
+            const responseDiv = document.getElementById('response');
+            responseDiv.textContent = '⏳ جاري التفكير...';
+
+            try {
+                const response = await fetch('/api/ai', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ prompt })
+                });
+                if (!response.ok) throw new Error(`خطأ: ${response.status}`);
+                const data = await response.json();
+                responseDiv.textContent = data.result || '⚠️ لم يتم استلام رد';
+            } catch (err) {
+                console.error(err);
+                responseDiv.textContent = '❌ حدث خطأ أثناء الاتصال';
+            }
+        });
+    </script>
+</body>
+</html>

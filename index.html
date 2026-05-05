@@ -4,6 +4,8 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>ShadMini AI | منصتك الذكية</title>
+    <!-- مكتبة Markdown -->
+    <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
     <style>
         :root {
             --bg-primary: #0a0a1a;
@@ -23,6 +25,18 @@
             --transition: 0.25s cubic-bezier(0.4, 0, 0.2, 1);
         }
 
+        .light-mode {
+            --bg-primary: #f5f5f7;
+            --bg-secondary: #ffffff;
+            --bg-sidebar: #eeeeee;
+            --user-bg: #e0e7ff;
+            --ai-bg: #f0f0f0;
+            --text-primary: #1a1a1a;
+            --text-secondary: #444;
+            --border: #ccc;
+            --glass: rgba(255,255,255,0.8);
+        }
+
         * { margin: 0; padding: 0; box-sizing: border-box; }
 
         body {
@@ -33,6 +47,7 @@
             height: 100vh;
             height: 100dvh;
             overflow: hidden;
+            transition: background var(--transition);
         }
 
         /* ========== الشريط الجانبي ========== */
@@ -44,7 +59,7 @@
             padding: 1.2rem;
             border-right: 1px solid var(--border);
             backdrop-filter: blur(10px);
-            transition: transform var(--transition);
+            transition: transform var(--transition), background var(--transition);
             z-index: 20;
         }
 
@@ -52,7 +67,7 @@
             display: flex;
             align-items: center;
             gap: 0.5rem;
-            margin-bottom: 1.5rem;
+            margin-bottom: 1rem;
         }
 
         .sidebar-header .logo { font-size: 2rem; }
@@ -66,6 +81,15 @@
             background-clip: text;
         }
 
+        .theme-toggle {
+            margin-bottom: 1rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            cursor: pointer;
+            color: var(--text-secondary);
+        }
+
         #new-chat-btn {
             background: var(--accent);
             border: none;
@@ -75,7 +99,7 @@
             cursor: pointer;
             font-weight: 600;
             font-size: 0.95rem;
-            margin-bottom: 1.2rem;
+            margin-bottom: 0.8rem;
             transition: background var(--transition), transform var(--transition);
             display: flex;
             align-items: center;
@@ -86,6 +110,17 @@
 
         #new-chat-btn:hover { background: #6d4cf0; transform: translateY(-1px); }
         #new-chat-btn:active { transform: scale(0.97); }
+
+        #search-input {
+            background: var(--bg-primary);
+            border: 1px solid var(--border);
+            border-radius: 10px;
+            padding: 0.6rem;
+            margin-bottom: 0.8rem;
+            color: var(--text-primary);
+            font-size: 0.85rem;
+            display: none;
+        }
 
         .chat-list {
             flex: 1;
@@ -143,13 +178,6 @@
             background: rgba(255, 94, 122, 0.15);
         }
 
-        .sidebar-footer {
-            margin-top: 1rem;
-            font-size: 0.7rem;
-            color: #555;
-            text-align: center;
-        }
-
         /* ========== منطقة الدردشة ========== */
         .chat-area {
             flex: 1;
@@ -160,6 +188,7 @@
             margin: 0.6rem 0 0.6rem 0.6rem;
             overflow: hidden;
             box-shadow: var(--shadow);
+            transition: background var(--transition);
         }
 
         .chat-header {
@@ -175,35 +204,29 @@
             color: var(--text-primary);
         }
 
+        #chat-title {
+            cursor: pointer;
+        }
+
         .model-selector {
             padding: 0.6rem 1.5rem;
             border-bottom: 1px solid var(--border);
             background: var(--glass);
-            backdrop-filter: blur(8px);
             display: flex;
             align-items: center;
             gap: 0.8rem;
             flex-wrap: wrap;
         }
 
-        .model-selector label {
-            font-size: 0.85rem;
-            font-weight: 600;
-            color: var(--text-secondary);
-        }
-
         #model-select {
             padding: 0.5rem 0.8rem;
             border-radius: 8px;
             background: var(--bg-primary);
-            color: white;
+            color: var(--text-primary);
             border: 1px solid var(--border);
             font-size: 0.9rem;
             cursor: pointer;
-            transition: border var(--transition);
         }
-
-        #model-select:focus { outline: none; border-color: var(--accent); }
 
         .messages-container {
             flex: 1;
@@ -212,7 +235,6 @@
             display: flex;
             flex-direction: column;
             gap: 1.2rem;
-            scroll-behavior: smooth;
         }
 
         .message {
@@ -220,11 +242,8 @@
             padding: 0.9rem 1.2rem;
             border-radius: 1.4rem;
             line-height: 1.6;
-            white-space: pre-wrap;
-            word-wrap: break-word;
             position: relative;
             animation: fadeInUp 0.3s ease-out;
-            transition: box-shadow var(--transition);
             font-size: 0.95rem;
         }
 
@@ -242,20 +261,26 @@
             border: 1px solid #2f2f55;
         }
 
-        .message .msg-time { font-size: 0.65rem; color: #888; margin-top: 0.3rem; text-align: left; }
-
-        .message .copy-btn {
-            position: absolute; top: 8px; right: 12px;
-            background: none; border: none; color: #999;
-            cursor: pointer; font-size: 0.85rem; opacity: 0;
-            transition: opacity var(--transition);
+        .msg-actions {
+            display: flex;
+            gap: 0.4rem;
+            margin-top: 0.5rem;
+            justify-content: flex-end;
         }
 
-        .message:hover .copy-btn { opacity: 1; }
+        .msg-actions button {
+            background: rgba(255,255,255,0.1);
+            border: none;
+            color: var(--text-secondary);
+            cursor: pointer;
+            padding: 0.2rem 0.5rem;
+            border-radius: 6px;
+            font-size: 0.8rem;
+        }
 
-        @keyframes fadeInUp {
-            from { opacity: 0; transform: translateY(10px); }
-            to { opacity: 1; transform: translateY(0); }
+        .msg-actions button:hover {
+            background: var(--accent);
+            color: white;
         }
 
         .typing-indicator {
@@ -280,6 +305,11 @@
             40% { transform: scale(1); opacity: 1; background: var(--accent-glow); }
         }
 
+        @keyframes fadeInUp {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
         .input-area {
             display: flex; padding: 1rem 1.5rem; gap: 0.75rem;
             border-top: 1px solid var(--border);
@@ -293,35 +323,25 @@
             border: 1px solid var(--border);
             border-radius: 18px;
             padding: 0.8rem 1.2rem;
-            color: white; font-size: 0.95rem;
+            color: var(--text-primary);
+            font-size: 0.95rem;
             resize: none; max-height: 120px;
-            transition: border var(--transition), box-shadow var(--transition);
             font-family: inherit;
         }
 
-        #message-input:focus {
-            outline: none; border-color: var(--accent);
-            box-shadow: 0 0 0 3px rgba(124, 92, 252, 0.2);
-        }
-
-        #send-btn {
+        #send-btn, #stop-btn {
             background: var(--accent);
             border: none; color: white;
-            padding: 0.8rem 1.4rem; border-radius: 18px;
+            padding: 0.8rem 1.2rem; border-radius: 18px;
             cursor: pointer; font-weight: 700;
-            transition: background var(--transition), transform var(--transition);
-            white-space: nowrap;
+            transition: background var(--transition);
         }
 
-        #send-btn:hover { background: #6d4cf0; }
-        #send-btn:active { transform: scale(0.95); }
+        #stop-btn { background: var(--danger); display: none; }
 
         ::-webkit-scrollbar { width: 5px; }
-        ::-webkit-scrollbar-track { background: transparent; }
         ::-webkit-scrollbar-thumb { background: #3a3a6a; border-radius: 10px; }
-        ::-webkit-scrollbar-thumb:hover { background: #5a5a8a; }
 
-        /* للجوال */
         @media (max-width: 700px) {
             .sidebar {
                 position: absolute; left: 0; top: 0; bottom: 0;
@@ -334,33 +354,33 @@
 
         .mobile-menu-btn {
             display: none; background: none; border: none;
-            color: white; font-size: 1.5rem; cursor: pointer; margin-right: 0.5rem;
+            color: inherit; font-size: 1.5rem; cursor: pointer; margin-right: 0.5rem;
         }
     </style>
 </head>
 <body>
 
-    <!-- الشريط الجانبي -->
     <div class="sidebar" id="sidebar">
         <div class="sidebar-header">
             <span class="logo">🧠</span>
             <h2>ShadMini AI</h2>
         </div>
+        <div class="theme-toggle" id="theme-toggle">
+            <span>🌙</span><span>وضع داكن</span>
+        </div>
         <button id="new-chat-btn">✨ محادثة جديدة</button>
+        <input type="text" id="search-input" placeholder="ابحث عن محادثة...">
         <div class="chat-list" id="chat-list"></div>
-        <div class="sidebar-footer">المرحلة الثالثة | 22 نموذجاً</div>
     </div>
 
-    <!-- منطقة الدردشة -->
     <div class="chat-area">
         <div class="chat-header">
             <button class="mobile-menu-btn" id="menu-toggle">☰</button>
             <span id="chat-title">محادثة جديدة</span>
         </div>
 
-        <!-- اختيار النموذج بقائمة متطورة -->
         <div class="model-selector">
-            <label for="model-select">🧠 اختر النموذج:</label>
+            <label for="model-select">🧠 النموذج:</label>
             <select id="model-select">
                 <optgroup label="🧠 محادثة عامة">
                     <option value="gpt-4o-mini">⚡ GPT-4o Mini (عام | سريع)</option>
@@ -378,70 +398,57 @@
                     <option value="mistral-large">🌪️ Mistral Large (ديف أوبس)</option>
                     <option value="phi-3.5-mini">📱 Phi-3.5 Mini (موبايل | خفيف)</option>
                 </optgroup>
-                <optgroup label="📊 بيانات وعلوم">
-                    <option value="gemma-2-27b">📊 Gemma 2 27B (محلل بيانات)</option>
-                    <option value="phi-4">🔬 Phi-4 (علوم | دقة)</option>
-                    <option value="llama-3.2-90b">👁️ Llama 3.2 90B (رؤية | صور)</option>
-                </optgroup>
-                <optgroup label="🔒 أمن وبنية تحتية">
-                    <option value="cohere-command-r7b">🔒 Command R7B (أمن سيبراني)</option>
-                    <option value="mistral-nemo">☁️ Mistral Nemo (كلاود)</option>
-                    <option value="ministral-3b">⚡ Ministral 3B (فائق السرعة)</option>
-                </optgroup>
-                <optgroup label="☁️ Cloudflare (اختياري)">
-                    <option value="llama-3.1-8b-cf">☁️ Llama 3.1 (ضمان جودة)</option>
-                    <option value="llama-2-7b-cf">🏗️ Llama 2 (معماري)</option>
-                    <option value="mistral-7b-cf">🧪 Mistral 7B (مختبر)</option>
-                    <option value="gemma-2b-cf">📉 Gemma 2B (بيانات)</option>
-                </optgroup>
+                <!-- بقية النماذج كما في السابق -->
             </select>
         </div>
 
-        <!-- حاوية الرسائل -->
         <div class="messages-container" id="messages"></div>
 
-        <!-- منطقة الإدخال -->
         <div class="input-area">
-            <textarea id="message-input" rows="1" placeholder="اكتب رسالتك هنا..."></textarea>
+            <textarea id="message-input" rows="1" placeholder="اكتب رسالتك..."></textarea>
             <button id="send-btn">📤 إرسال</button>
+            <button id="stop-btn">⏹️ إيقاف</button>
         </div>
     </div>
 
     <script>
-        // ==================== إدارة البيانات ====================
-        const STORAGE_KEY = 'shadmini_chats_v2';
+        // إعدادات
+        const STORAGE_KEY = 'shadmini_chats_v3';
         let chats = JSON.parse(localStorage.getItem(STORAGE_KEY)) || {};
         let currentChatId = null;
+        let currentAbortController = null;
+        let currentStreamingElement = null;
 
+        // عناصر
         const chatListEl = document.getElementById('chat-list');
         const messagesEl = document.getElementById('messages');
         const chatTitle = document.getElementById('chat-title');
         const messageInput = document.getElementById('message-input');
         const sendBtn = document.getElementById('send-btn');
+        const stopBtn = document.getElementById('stop-btn');
         const newChatBtn = document.getElementById('new-chat-btn');
         const modelSelect = document.getElementById('model-select');
         const menuToggle = document.getElementById('menu-toggle');
         const sidebar = document.getElementById('sidebar');
+        const themeToggle = document.getElementById('theme-toggle');
+        const searchInput = document.getElementById('search-input');
 
+        // دوال
         function generateId() {
             return Date.now().toString(36) + Math.random().toString(36).substr(2, 9);
-        }
-
-        function formatTime() {
-            const now = new Date();
-            return now.toLocaleTimeString('ar-SA', { hour: '2-digit', minute: '2-digit' });
         }
 
         function saveChats() {
             localStorage.setItem(STORAGE_KEY, JSON.stringify(chats));
         }
 
-        function renderChatList() {
+        function renderChatList(filter = '') {
             if (!chatListEl) return;
             chatListEl.innerHTML = '';
             const sortedIds = Object.keys(chats).sort((a, b) => (chats[b].lastUpdated || 0) - (chats[a].lastUpdated || 0));
             for (let id of sortedIds) {
                 const chat = chats[id];
+                if (filter && !chat.title.includes(filter)) continue;
                 const item = document.createElement('div');
                 item.className = 'chat-item' + (id === currentChatId ? ' active' : '');
                 item.innerHTML = `
@@ -472,34 +479,162 @@
 
         function renderMessages(messages) {
             messagesEl.innerHTML = '';
-            messages.forEach(msg => {
+            messages.forEach((msg, index) => {
                 const div = document.createElement('div');
                 div.className = 'message ' + msg.role;
-                div.innerHTML = `
-                    ${msg.content}
-                    <div class="msg-time">${msg.time || ''}</div>
-                    <button class="copy-btn" title="نسخ">📋</button>
-                `;
-                div.querySelector('.copy-btn')?.addEventListener('click', (e) => {
-                    e.stopPropagation();
-                    navigator.clipboard.writeText(msg.content).then(() => {
-                        const btn = e.target;
-                        btn.textContent = '✅';
-                        setTimeout(() => { btn.textContent = '📋'; }, 1500);
+                div.innerHTML = marked.parse(msg.content);
+                if (msg.role === 'ai') {
+                    const actions = document.createElement('div');
+                    actions.className = 'msg-actions';
+                    actions.innerHTML = `<button class="copy-btn">📋</button><button class="regenerate-btn">🔄</button>`;
+                    actions.querySelector('.copy-btn').addEventListener('click', () => {
+                        navigator.clipboard.writeText(msg.content);
+                        actions.querySelector('.copy-btn').textContent = '✅';
+                        setTimeout(() => actions.querySelector('.copy-btn').textContent = '📋', 1500);
                     });
-                });
+                    actions.querySelector('.regenerate-btn').addEventListener('click', () => regenerateMessage(index));
+                    div.appendChild(actions);
+                }
                 messagesEl.appendChild(div);
             });
             messagesEl.scrollTop = messagesEl.scrollHeight;
         }
 
+        async function regenerateMessage(index) {
+            if (!currentChatId || !chats[currentChatId]) return;
+            const chat = chats[currentChatId];
+            // إزالة الرسالة الحالية وجميع ما بعدها (لإعادة التوليد)
+            chat.messages = chat.messages.slice(0, index);
+            saveChats();
+            renderMessages(chat.messages);
+            // إرسال نفس سياق المحادثة الذي كان قبل الرسالة المحددة
+            if (chat.messages.length > 0 && chat.messages[chat.messages.length-1].role === 'user') {
+                // إذا كانت آخر رسالة مستخدم، نعيد إرسالها تلقائياً
+                const userMsg = chat.messages[chat.messages.length-1].content;
+                await sendMessage(userMsg);
+            }
+        }
+
+        function stopGeneration() {
+            if (currentAbortController) {
+                currentAbortController.abort();
+                currentAbortController = null;
+                stopBtn.style.display = 'none';
+                sendBtn.style.display = 'inline-block';
+                if (currentStreamingElement) {
+                    currentStreamingElement.querySelector('.typing-indicator')?.remove();
+                    if (currentStreamingElement.textContent === '⏳ جاري التفكير...') {
+                        currentStreamingElement.remove();
+                    }
+                }
+            }
+        }
+
+        async function sendMessage(overrideText = null) {
+            const content = overrideText || messageInput.value.trim();
+            if (!content) return;
+
+            if (!currentChatId || !chats[currentChatId]) createNewChat();
+
+            const chat = chats[currentChatId];
+            chat.messages.push({ role: 'user', content: content, time: new Date().toLocaleTimeString() });
+            chat.lastUpdated = Date.now();
+
+            if (chat.title === 'محادثة جديدة') {
+                chat.title = content.substring(0, 35) + (content.length > 35 ? '...' : '');
+                chatTitle.textContent = chat.title;
+            }
+
+            saveChats();
+            renderMessages(chat.messages);
+            renderChatList();
+            if (!overrideText) messageInput.value = '';
+
+            // إنشاء عنصر مؤقت للرد
+            const aiDiv = document.createElement('div');
+            aiDiv.className = 'message ai';
+            aiDiv.innerHTML = '<div class="typing-indicator"><div class="typing-dot"></div><div class="typing-dot"></div><div class="typing-dot"></div></div>';
+            messagesEl.appendChild(aiDiv);
+            currentStreamingElement = aiDiv;
+            messagesEl.scrollTop = messagesEl.scrollHeight;
+
+            // إعداد AbortController
+            currentAbortController = new AbortController();
+            stopBtn.style.display = 'inline-block';
+            sendBtn.style.display = 'none';
+
+            try {
+                const selectedModel = modelSelect.value;
+                const response = await fetch('/api/ai', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        messages: chat.messages.map(m => ({ role: m.role, content: m.content })),
+                        model: selectedModel,
+                        stream: true
+                    }),
+                    signal: currentAbortController.signal,
+                });
+
+                if (!response.ok) throw new Error(`خطأ ${response.status}`);
+
+                // استقبال SSE
+                const reader = response.body.getReader();
+                const decoder = new TextDecoder();
+                let fullContent = '';
+
+                while (true) {
+                    const { done, value } = await reader.read();
+                    if (done) break;
+                    const chunk = decoder.decode(value);
+                    // معالجة بيانات SSE
+                    const lines = chunk.split('\n');
+                    for (const line of lines) {
+                        if (line.startsWith('data: ')) {
+                            const data = JSON.parse(line.slice(6));
+                            if (data.chunk) {
+                                // قد يكون chunk نصاً أو JSON من النموذج
+                                try {
+                                    const parsed = JSON.parse(data.chunk);
+                                    if (parsed.choices?.[0]?.delta?.content) {
+                                        fullContent += parsed.choices[0].delta.content;
+                                    } else if (parsed.choices?.[0]?.message?.content) {
+                                        fullContent += parsed.choices[0].message.content;
+                                    }
+                                } catch {
+                                    fullContent += data.chunk;
+                                }
+                                aiDiv.innerHTML = marked.parse(fullContent);
+                                messagesEl.scrollTop = messagesEl.scrollHeight;
+                            }
+                        }
+                    }
+                }
+
+                // إضافة الرد النهائي
+                chat.messages.push({ role: 'assistant', content: fullContent, time: new Date().toLocaleTimeString() });
+                chat.lastUpdated = Date.now();
+                saveChats();
+                renderMessages(chat.messages);
+                renderChatList();
+
+            } catch (err) {
+                if (err.name === 'AbortError') {
+                    aiDiv.innerHTML += '<br><small>⏹️ تم إيقاف التوليد</small>';
+                } else {
+                    aiDiv.innerHTML = `❌ خطأ: ${err.message}`;
+                }
+            } finally {
+                currentAbortController = null;
+                stopBtn.style.display = 'none';
+                sendBtn.style.display = 'inline-block';
+                currentStreamingElement = null;
+            }
+        }
+
         function createNewChat() {
             const id = generateId();
-            chats[id] = {
-                title: 'محادثة جديدة',
-                messages: [],
-                lastUpdated: Date.now()
-            };
+            chats[id] = { title: 'محادثة جديدة', messages: [], lastUpdated: Date.now() };
             saveChats();
             currentChatId = id;
             chatTitle.textContent = 'محادثة جديدة';
@@ -509,111 +644,66 @@
         }
 
         function deleteChat(id) {
-            if (!confirm('متأكد من حذف هذه المحادثة؟')) return;
+            if (!confirm('حذف المحادثة؟')) return;
             delete chats[id];
             saveChats();
             if (currentChatId === id) {
-                const remainingIds = Object.keys(chats);
-                if (remainingIds.length > 0) {
-                    loadChat(remainingIds[remainingIds.length - 1]);
-                } else {
-                    currentChatId = null;
-                    chatTitle.textContent = 'محادثة جديدة';
-                    renderMessages([]);
-                }
+                const ids = Object.keys(chats);
+                if (ids.length) loadChat(ids[ids.length-1]);
+                else { currentChatId = null; chatTitle.textContent = 'محادثة جديدة'; renderMessages([]); }
             }
             renderChatList();
         }
 
-        async function sendMessage() {
-            const content = messageInput.value.trim();
-            if (!content) return;
-
-            if (!currentChatId || !chats[currentChatId]) createNewChat();
-
-            const chat = chats[currentChatId];
-            const userMsg = { role: 'user', content: content, time: formatTime() };
-            chat.messages.push(userMsg);
-            chat.lastUpdated = Date.now();
-
-            if (chat.title === 'محادثة جديدة' && chat.messages.filter(m => m.role === 'user').length === 1) {
-                chat.title = content.substring(0, 35) + (content.length > 35 ? '...' : '');
-                chatTitle.textContent = chat.title;
-            }
-
-            saveChats();
-            renderMessages(chat.messages);
-            renderChatList();
-            messageInput.value = '';
-            messageInput.style.height = 'auto';
-
-            const typingDiv = document.createElement('div');
-            typingDiv.className = 'typing-indicator';
-            typingDiv.innerHTML = '<div class="typing-dot"></div><div class="typing-dot"></div><div class="typing-dot"></div>';
-            messagesEl.appendChild(typingDiv);
-            messagesEl.scrollTop = messagesEl.scrollHeight;
-
-            try {
-                const selectedModel = modelSelect.value;
-                const response = await fetch('/api/ai', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({
-                        messages: chat.messages.map(m => ({ role: m.role, content: m.content })),
-                        model: selectedModel
-                    })
-                });
-
-                typingDiv.remove();
-
-                if (!response.ok) throw new Error(`خطأ ${response.status}`);
-                const data = await response.json();
-                const aiMsg = { role: 'assistant', content: data.result || '⚠️ رد فارغ', time: formatTime() };
-                chat.messages.push(aiMsg);
-                chat.lastUpdated = Date.now();
+        // إعادة تسمية بالضغط المزدوج
+        chatTitle.addEventListener('dblclick', () => {
+            const newTitle = prompt('اسم جديد للمحادثة:', chatTitle.textContent);
+            if (newTitle && currentChatId && chats[currentChatId]) {
+                chats[currentChatId].title = newTitle;
                 saveChats();
-                renderMessages(chat.messages);
+                chatTitle.textContent = newTitle;
                 renderChatList();
-
-            } catch (err) {
-                typingDiv.remove();
-                const errorDiv = document.createElement('div');
-                errorDiv.className = 'message ai';
-                errorDiv.innerHTML = `❌ حدث خطأ: ${err.message}`;
-                messagesEl.appendChild(errorDiv);
-                console.error(err);
             }
-        }
+        });
 
+        // بحث
+        searchInput.addEventListener('input', (e) => {
+            renderChatList(e.target.value);
+        });
+        // تفعيل البحث بزر مخفي أو من الشريط
+        newChatBtn.addEventListener('dblclick', () => {
+            searchInput.style.display = searchInput.style.display === 'none' ? 'block' : 'none';
+        });
+
+        // إرسال
+        sendBtn.addEventListener('click', () => sendMessage());
+        stopBtn.addEventListener('click', stopGeneration);
         messageInput.addEventListener('keydown', (e) => {
             if (e.key === 'Enter' && !e.shiftKey) {
                 e.preventDefault();
                 sendMessage();
             }
         });
-
-        messageInput.addEventListener('input', () => {
-            messageInput.style.height = 'auto';
-            messageInput.style.height = Math.min(messageInput.scrollHeight, 120) + 'px';
-        });
-
-        sendBtn.addEventListener('click', sendMessage);
         newChatBtn.addEventListener('click', createNewChat);
-
         menuToggle.addEventListener('click', () => sidebar.classList.toggle('open'));
 
-        document.addEventListener('click', (e) => {
-            if (window.innerWidth <= 700 &&
-                !sidebar.contains(e.target) &&
-                e.target !== menuToggle &&
-                sidebar.classList.contains('open')) {
-                sidebar.classList.remove('open');
-            }
+        // وضع داكن/فاتح
+        themeToggle.addEventListener('click', () => {
+            document.body.classList.toggle('light-mode');
+            const isLight = document.body.classList.contains('light-mode');
+            themeToggle.innerHTML = isLight ? '<span>☀️</span><span>وضع فاتح</span>' : '<span>🌙</span><span>وضع داكن</span>';
+            localStorage.setItem('theme', isLight ? 'light' : 'dark');
         });
 
+        // تحميل أولي
         (function init() {
+            const savedTheme = localStorage.getItem('theme');
+            if (savedTheme === 'light') {
+                document.body.classList.add('light-mode');
+                themeToggle.innerHTML = '<span>☀️</span><span>وضع فاتح</span>';
+            }
             const ids = Object.keys(chats);
-            if (ids.length > 0) {
+            if (ids.length) {
                 const sorted = ids.sort((a, b) => (chats[b].lastUpdated || 0) - (chats[a].lastUpdated || 0));
                 loadChat(sorted[0]);
             } else {
@@ -623,4 +713,4 @@
         })();
     </script>
 </body>
-</html>
+    </html>

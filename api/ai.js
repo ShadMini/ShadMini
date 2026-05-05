@@ -4,9 +4,11 @@ export default async function handler(req, res) {
     }
 
     try {
-        const { prompt } = req.body;
-        if (!prompt) {
-            return res.status(400).json({ error: 'الرجاء إدخال سؤال' });
+        // نتوقع الآن استلام "messages" وهي مصفوفة تحتوي على كل تاريخ المحادثة
+        const { messages } = req.body;
+
+        if (!messages || !Array.isArray(messages) || messages.length === 0) {
+            return res.status(400).json({ error: 'الرجاء إرسال سجل المحادثة (messages)' });
         }
 
         const response = await fetch('https://models.inference.ai.azure.com/chat/completions', {
@@ -17,9 +19,7 @@ export default async function handler(req, res) {
             },
             body: JSON.stringify({
                 model: "gpt-4o-mini",
-                messages: [
-                    { role: "user", content: prompt }
-                ]
+                messages: messages  // نمرر المصفوفة كاملة
             })
         });
 

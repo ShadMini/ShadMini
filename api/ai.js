@@ -1,8 +1,8 @@
 // ==========================================
-// مكتبة النماذج الكاملة (20+ نموذج مجاني)
+// مكتبة النماذج الكاملة (22 نموذج مجاني)
 // ==========================================
 const MODELS_LIBRARY = {
-    // ========== GITHUB MODELS ==========
+    // ... (نفس النماذج السابقة بالضبط لا تغيير فيها) ...
     'gpt-4o-mini': {
         provider: 'github',
         modelId: 'gpt-4o-mini',
@@ -129,8 +129,6 @@ const MODELS_LIBRARY = {
         auth: () => `Bearer ${process.env.GITHUB_TOKEN}`,
         description: '☁️ كلاود | مهندس',
     },
-
-    // ========== CLOUDFLARE WORKERS AI ==========
     'llama-3.1-8b-cf': {
         provider: 'cloudflare',
         modelId: '@cf/meta/llama-3.1-8b-instruct',
@@ -138,6 +136,7 @@ const MODELS_LIBRARY = {
         auth: () => `Bearer ${process.env.CF_API_TOKEN}`,
         transform: (messages) => ({
             messages: messages.map(m => ({ role: m.role, content: m.content })),
+            stream: true,
             model: '@cf/meta/llama-3.1-8b-instruct'
         }),
         description: '☁️ ضمان الجودة',
@@ -149,6 +148,7 @@ const MODELS_LIBRARY = {
         auth: () => `Bearer ${process.env.CF_API_TOKEN}`,
         transform: (messages) => ({
             messages: messages.map(m => ({ role: m.role, content: m.content })),
+            stream: true,
             model: '@cf/meta/llama-2-7b-chat-fp16'
         }),
         description: '🏗️ معماري | قديم',
@@ -160,6 +160,7 @@ const MODELS_LIBRARY = {
         auth: () => `Bearer ${process.env.CF_API_TOKEN}`,
         transform: (messages) => ({
             messages: messages.map(m => ({ role: m.role, content: m.content })),
+            stream: true,
             model: '@cf/mistral/mistral-7b-instruct-v0.1'
         }),
         description: '🧪 مختبر | تجارب',
@@ -171,22 +172,33 @@ const MODELS_LIBRARY = {
         auth: () => `Bearer ${process.env.CF_API_TOKEN}`,
         transform: (messages) => ({
             messages: messages.map(m => ({ role: m.role, content: m.content })),
+            stream: true,
             model: '@cf/google/gemma-2b-it-lora'
         }),
         description: '📉 بيانات | خفيف',
     }
 };
 
-// ==========================================
-// الدالة الوسيطة (Handler)
-// ==========================================
+// دالة محولة للـ ReadableStream للتوافق مع Vercel
+function nodeStreamToWebStream(nodeStream) {
+    return new ReadableStream({
+        start(controller) {
+            nodeStream.on('data', chunk => {
+                controller.enqueue(new TextEncoder().encode(chunk.toString()));
+            });
+            nodeStream.on('end', () => controller.close());
+            nodeStream.on('error', err => controller.error(err));
+        }
+    });
+}
+
 export default async function handler(req, res) {
     if (req.method !== 'POST') {
         return res.status(405).json({ error: 'Method Not Allowed' });
     }
 
     try {
-        const { messages, model = 'gpt-4o-mini' } = req.body;
+        const { messages, model = 'gpt-4o-mini', stream = true } = req.body;
 
         if (!messages || !Array.isArray(messages) || messages.length === 0) {
             return res.status(400).json({ error: 'الرجاء إرسال سجل المحادثة (messages)' });
@@ -202,36 +214,72 @@ export default async function handler(req, res) {
         let requestBody;
         if (modelConfig.transform) {
             requestBody = modelConfig.transform(messages);
+            requestBody.stream = stream; // نتأكد من تمكين التدفق
         } else {
-            requestBody = { model: modelConfig.modelId, messages: messages };
+            requestBody = { model: modelConfig.modelId, messages: messages, stream: stream };
         }
 
-        // استدعاء واجهة برمجة التطبيقات
+        // استدعاء واجهة برمجة التطبيقات مع التدفق
         const response = await fetch(modelConfig.endpoint, {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
                 'Authorization': modelConfig.auth(),
             },
-            body: JSON.stringify(requestBody)
+            body: JSON.stringify(requestBody),
         });
 
-        const data = await response.json();
-
-        // التعامل مع الردود المختلفة
-        if (data.choices && data.choices[0] && data.choices[0].message) {
-            return res.status(200).json({ result: data.choices[0].message.content });
-        } else if (data.result && data.result.response) {
-            // تنسيق Cloudflare المحتمل
-            return res.status(200).json({ result: data.result.response });
-        } else if (data.error) {
-            throw new Error(data.error.message || "خطأ من الخادم");
-        } else {
-            throw new Error("لم يتم استلام رد صحيح");
+        if (!response.ok) {
+            const errorText = await response.text();
+            throw new Error(`API Error ${response.status}: ${errorText}`);
         }
 
+        // إذا طلب المستخدم تدفق، نعيد Stream
+        if (stream && response.body) {
+            res.setHeader('Content-Type', 'text/event-stream');
+            res.setHeader('Cache-Control', 'no-cache');
+            res.setHeader('Connection', 'keep-alive');
+            
+            // للتعامل مع Vercel Serverless نحتاج لتحويل Node Readable إلى Web Readable
+            // نستخدم ReadableStream مباشرة بدل node
+            const reader = response.body.getReader();
+            const decoder = new TextDecoder();
+            
+            res.writeHead(200);
+            
+            const pump = async () => {
+                try {
+                    while (true) {
+                        const { done, value } = await reader.read();
+                        if (done) {
+                            res.end();
+                            break;
+                        }
+                        const chunk = decoder.decode(value, { stream: true });
+                        // إرسال كل جزء كمقطع SSE
+                        res.write(`data: ${JSON.stringify({ chunk })}\n\n`);
+                    }
+                } catch (err) {
+                    console.error('Stream error:', err);
+                    res.end();
+                }
+            };
+            
+            pump();
+            return;
+        } else {
+            // الطلب العادي بدون تدفق
+            const data = await response.json();
+            if (data.choices && data.choices[0] && data.choices[0].message) {
+                return res.status(200).json({ result: data.choices[0].message.content });
+            } else if (data.error) {
+                throw new Error(data.error.message || "خطأ من الخادم");
+            } else {
+                throw new Error("لم يتم استلام رد صحيح");
+            }
+        }
     } catch (error) {
         console.error('خطأ في الخادم الوسيط:', error);
         return res.status(500).json({ error: error.message });
     }
-}
+        }

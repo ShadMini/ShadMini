@@ -69,6 +69,9 @@ let isGenerating = false;
 let abortTyping = false;
 let currentTypingElement = null;
 
+// رابط الشعار الجديد
+const AI_AVATAR_URL = 'https://i.ibb.co/v6NNkBKD/Green-and-Black-Modern-Technology-Logo-2.png';
+
 function save() { localStorage.setItem(STORAGE_KEY, JSON.stringify(chats)); }
 function uid() { return Date.now().toString(36) + Math.random().toString(36).slice(2, 8); }
 
@@ -177,7 +180,14 @@ function appendMessage(role, content, index, animate = true) {
     inner.className = 'ai-row-inner';
     const avatar = document.createElement('div');
     avatar.className = 'ai-avatar';
-    avatar.innerHTML = '<i class="fa-solid fa-microchip-ai"></i>';
+    
+    // استخدام الصورة الجديدة كأفاتار
+    const avatarImg = document.createElement('img');
+    avatarImg.src = AI_AVATAR_URL;
+    avatarImg.alt = 'AI';
+    avatarImg.className = 'ai-avatar-img';
+    avatar.appendChild(avatarImg);
+    
     const bubble = document.createElement('div');
     bubble.className = 'bubble';
     if (content) {
@@ -228,7 +238,14 @@ function showTypingIndicator() {
   inner.className = 'ai-row-inner';
   const avatar = document.createElement('div');
   avatar.className = 'ai-avatar';
-  avatar.innerHTML = '<i class="fa-solid fa-microchip-ai"></i>';
+  
+  // استخدام الصورة الجديدة كأفاتار
+  const avatarImg = document.createElement('img');
+  avatarImg.src = AI_AVATAR_URL;
+  avatarImg.alt = 'AI';
+  avatarImg.className = 'ai-avatar-img';
+  avatar.appendChild(avatarImg);
+  
   const bubble = document.createElement('div');
   bubble.className = 'bubble';
   bubble.innerHTML = '<div class="typing-indicator"><span class="typing-dot"></span><span class="typing-dot"></span><span class="typing-dot"></span></div>';

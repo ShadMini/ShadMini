@@ -1,0 +1,117 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>ShadMini AI · المساعد الذكي</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@300;400;500;600;700;800&family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" />
+  <link id="hljs-dark"  rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/atom-one-dark.min.css" />
+  <link id="hljs-light" rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/atom-one-light.min.css" disabled />
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body class="dark-mode">
+
+  <div class="sidebar-overlay" id="sidebarOverlay"></div>
+
+  <div class="app-container">
+    <!-- SIDEBAR -->
+    <aside class="sidebar" id="sidebar">
+      <div class="sidebar-header">
+        <div class="logo-area">
+          <div class="logo-icon"><i class="fa-solid fa-microchip-ai"></i></div>
+          <span class="app-name">ShadMini AI</span>
+        </div>
+        <button class="theme-toggle" id="themeToggle" title="تبديل الوضع">
+          <i class="fa-solid fa-moon" id="themeIcon"></i>
+        </button>
+      </div>
+
+      <button class="new-chat-btn" id="newChatBtn">
+        <i class="fa-solid fa-sparkles"></i>
+        <span>محادثة جديدة</span>
+      </button>
+
+      <!-- مربع التعريف -->
+      <div class="sidebar-info-box">
+        <p class="info-description">مساعد ذكي متعدد النماذج للكتابة والترجمة والبرمجة</p>
+        <p class="info-credit">التصميم بواسطة <strong>ShadyRahimo</strong></p>
+        <a class="telegram-btn" href="https://t.me/AbuAlaX" target="_blank" rel="noopener noreferrer">
+          <i class="fa-brands fa-telegram"></i>
+        </a>
+      </div>
+
+      <div class="chats-section">
+        <p class="chats-label">المحادثات السابقة</p>
+        <div class="chats-list" id="chatsList"></div>
+      </div>
+    </aside>
+
+    <!-- MAIN AREA -->
+    <main class="main-area">
+      <header class="topbar">
+        <button class="hamburger-btn" id="hamburgerBtn">
+          <i class="fa-solid fa-bars"></i>
+        </button>
+        <div class="topbar-center">
+          <div class="model-selector-wrap">
+            <i class="fa-solid fa-robot model-icon"></i>
+            <select class="model-select" id="modelSelect">
+              <optgroup label="OpenAI">
+                <option value="gpt-4o-mini" selected>GPT-4o Mini</option>
+                <option value="gpt-4.1-nano">GPT-4.1 Nano</option>
+              </optgroup>
+              <optgroup label="Meta Llama">
+                <option value="Llama-3.3-70B-Instruct">Llama 3.3 70B</option>
+                <option value="Llama-3.2-90B-Vision-Instruct">Llama 3.2 90B</option>
+              </optgroup>
+              <optgroup label="Mistral AI">
+                <option value="Mistral-Large-2411">Mistral Large</option>
+                <option value="Codestral-2501">Codestral</option>
+              </optgroup>
+              <optgroup label="Microsoft">
+                <option value="Phi-4">Phi-4</option>
+                <option value="Phi-3.5-mini-instruct">Phi-3.5 Mini</option>
+              </optgroup>
+              <optgroup label="DeepSeek">
+                <option value="DeepSeek-R1">DeepSeek R1</option>
+                <option value="DeepSeek-V3-0324">DeepSeek V3</option>
+              </optgroup>
+              <optgroup label="Cohere">
+                <option value="Cohere-command-r-plus-08-2024">Command R+</option>
+              </optgroup>
+            </select>
+            <i class="fa-solid fa-chevron-down select-arrow"></i>
+          </div>
+        </div>
+        <div class="topbar-right">
+          <span class="chat-title-display" id="chatTitleDisplay">محادثة جديدة</span>
+        </div>
+      </header>
+
+      <div class="chat-window" id="chatWindow"></div>
+
+      <div class="input-area">
+        <div class="input-box">
+          <textarea id="userInput" class="user-textarea" placeholder="اكتب رسالتك هنا..." rows="1"></textarea>
+          <div class="input-actions">
+            <button class="stop-btn" id="stopBtn" style="display:none;">
+              <i class="fa-solid fa-stop"></i>
+            </button>
+            <button class="send-btn" id="sendBtn">
+              <i class="fa-solid fa-paper-plane"></i>
+            </button>
+          </div>
+        </div>
+        <p class="input-hint">اضغط Enter للإرسال، Shift+Enter لسطر جديد</p>
+      </div>
+    </main>
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
+  <script src="script.js"></script>
+</body>
+  </html>

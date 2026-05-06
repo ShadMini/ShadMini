@@ -1,4 +1,4 @@
-/* ========== CSS Variables — ChatGPT-inspired ========== */
+/* ========== CSS Variables — ChatGPT-inspired & Refined ========== */
 :root {
   --bg-main:        #212121;
   --bg-sidebar:     #171717;
@@ -315,7 +315,7 @@ body {
 }
 .suggestion-chip:hover { background: var(--bg-hover); border-color: var(--border-hover); color: var(--text-primary); }
 
-/* ========== MESSAGES ========== */
+/* ========== MESSAGES (محسّنة) ========== */
 .message-row {
   padding: 1rem max(1rem, calc(50% - 380px));
   display: flex; flex-direction: column; gap: 0.5rem;
@@ -328,11 +328,18 @@ body {
 }
 
 .message-row.user { align-items: flex-start; }
+
+/* فقاعة المستخدم */
 .message-row.user .bubble {
-  background: var(--bg-msg-user); color: var(--text-primary);
-  border-radius: var(--radius-xl); padding: 0.7rem 1.1rem;
-  font-size: 0.93rem; line-height: 1.65; max-width: 75%;
-  word-break: break-word; border: 1px solid var(--border);
+  background: linear-gradient(135deg, #1E40AF, #0052CC);
+  color: #ffffff;
+  border-radius: 1.5rem;
+  border-bottom-right-radius: 0.5rem;
+  padding: 0.9rem 1.3rem;
+  font-size: 0.93rem; line-height: 1.65;
+  max-width: 75%;
+  word-break: break-word;
+  box-shadow: 0 4px 16px rgba(0,82,204,0.25);
 }
 
 .message-row.ai { align-items: stretch; }
@@ -344,28 +351,51 @@ body {
   color: #fff; font-size: 0.72rem; flex-shrink: 0; margin-top: 2px;
 }
 
+/* فقاعة الـ AI */
 .message-row.ai .bubble {
-  background: transparent; color: var(--text-primary);
-  font-size: 0.93rem; line-height: 1.75; flex: 1; word-break: break-word; min-width: 0;
+  background: var(--white-soft, #F3F4F6);
+  color: var(--text-primary);
+  font-size: 0.93rem; line-height: 1.75;
+  flex: 1; word-break: break-word; min-width: 0;
+  border-radius: 1.5rem;
+  border-bottom-left-radius: 0.5rem;
+  padding: 0.9rem 1.3rem;
+  border: 1px solid var(--border-light, #E5E7EB);
+  box-shadow: 0 2px 8px rgba(0,0,0,0.03);
 }
 
-.bubble h1, .bubble h2, .bubble h3 { margin: 1rem 0 0.5rem; font-weight: 700; line-height: 1.3; }
-.bubble h1 { font-size: 1.2rem; }
-.bubble h2 { font-size: 1.05rem; }
-.bubble h3 { font-size: 0.95rem; }
-.bubble p { margin: 0.4rem 0; }
+/* تحسينات Markdown */
+.bubble h1, .bubble h2, .bubble h3 {
+  margin: 1.2rem 0 0.5rem;
+  font-weight: 700; line-height: 1.3;
+  border-bottom: 1px solid var(--border);
+  padding-bottom: 0.3rem;
+}
+.bubble h1 { font-size: 1.25rem; }
+.bubble h2 { font-size: 1.1rem; }
+.bubble h3 { font-size: 1rem; }
+.bubble p { margin: 0.5rem 0; }
 .bubble ul, .bubble ol { padding-right: 1.5rem; margin: 0.5rem 0; }
-.bubble li { margin: 0.25rem 0; }
+.bubble li { margin: 0.3rem 0; }
+.bubble ul li::before {
+  content: "• ";
+  color: var(--orange, #F97316);
+  font-weight: bold;
+}
 .bubble strong { font-weight: 700; }
 .bubble em { font-style: italic; }
-.bubble a { color: var(--accent); text-decoration: underline; }
+.bubble a {
+  color: var(--blue-deep, #0052CC);
+  text-decoration: underline;
+  font-weight: 500;
+}
 
-/* ── Code Blocks ── */
+/* ── Code Blocks (محسّنة) ── */
 .code-block-wrap {
   position: relative; margin: 0.75rem 0;
   border-radius: var(--radius-md);
   border: 1px solid rgba(255,255,255,0.1);
-  overflow: hidden; background: #282c34;
+  overflow: hidden; background: #1e293b;
 }
 .light-mode .code-block-wrap { background: #fafafa; border-color: rgba(0,0,0,0.1); }
 .code-block-wrap .hljs { background: transparent !important; padding: 0; }
@@ -402,7 +432,9 @@ body {
   background: transparent; border: none; border-radius: 0;
   padding: 0.85rem 1rem; overflow-x: auto; margin: 0;
   font-size: 0.83rem; line-height: 1.6;
+  color: #e2e8f0;
 }
+.light-mode .bubble pre { color: #1e293b; }
 .bubble pre:not(.enhanced) {
   background: #1a1a1a; border: 1px solid rgba(255,255,255,0.1);
   border-radius: var(--radius-md); margin: 0.75rem 0;
@@ -424,19 +456,25 @@ body {
 .bubble th, .bubble td { border: 1px solid var(--border); padding: 0.4rem 0.7rem; text-align: right; }
 .bubble th { background: var(--bg-hover); font-weight: 700; }
 
+/* أزرار الإجراءات (محسّنة) */
 .ai-actions {
-  display: flex; gap: 0.3rem; margin-top: 0.35rem;
+  display: flex; gap: 0.3rem; margin-top: 0.5rem;
   padding-right: calc(28px + 0.75rem);
 }
 
 .action-btn {
   padding: 0.28rem 0.6rem; border-radius: 0.4rem;
-  border: 1px solid transparent; background: transparent;
-  color: var(--text-muted); font-family: var(--font); font-size: 0.75rem;
-  cursor: pointer; display: flex; align-items: center; gap: 0.3rem;
+  border: 1px solid transparent; background: var(--gray-light, #F3F4F6);
+  color: var(--text-secondary); font-family: var(--font); font-size: 0.78rem;
+  font-weight: 500; cursor: pointer;
+  display: flex; align-items: center; gap: 0.3rem;
   transition: all var(--transition);
 }
-.action-btn:hover { background: var(--bg-hover); color: var(--text-primary); border-color: var(--border); }
+.action-btn:hover {
+  background: var(--blue-deep, #0052CC);
+  color: #ffffff;
+  border-color: var(--blue-deep, #0052CC);
+}
 .action-btn.copied { color: var(--accent); }
 
 .typing-indicator { display: flex; align-items: center; gap: 0.35rem; padding: 0.2rem 0; }
@@ -512,4 +550,4 @@ body {
   .welcome-title { font-size: 1.3rem; }
   .welcome-suggestions { gap: 0.4rem; }
   .suggestion-chip { font-size: 0.78rem; padding: 0.45rem 0.75rem; }
-  }
+            }

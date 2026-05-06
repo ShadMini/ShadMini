@@ -1,31 +1,74 @@
-// ShadMini AI - script.js (Vercel Edition)
+/* =========================================================
+   ShadMini AI — script.js  (Vercel + localStorage edition)
+   تحسينات شاملة: تأثير كتابة، تنسيق Markdown، أزرار، ثيمات
+   ========================================================= */
+
 marked.setOptions({ breaks: true, gfm: true });
 if (typeof hljs !== 'undefined') hljs.configure({ ignoreUnescapedHTML: true });
 
-// ---------- عناصر الواجهة ----------
-const chatWindow = document.getElementById('chatWindow');
-const userInput = document.getElementById('userInput');
-const sendBtn = document.getElementById('sendBtn');
-const stopBtn = document.getElementById('stopBtn');
-const newChatBtn = document.getElementById('newChatBtn');
-const chatsList = document.getElementById('chatsList');
-const themeToggle = document.getElementById('themeToggle');
-const themeIcon = document.getElementById('themeIcon');
-const modelSelect = document.getElementById('modelSelect');
-const hamburgerBtn = document.getElementById('hamburgerBtn');
-const sidebar = document.getElementById('sidebar');
-const sidebarOverlay = document.getElementById('sidebarOverlay');
+const LANG_ALIASES = {
+  js: 'javascript', ts: 'typescript', py: 'python',
+  rb: 'ruby', sh: 'bash', yml: 'yaml', md: 'markdown',
+  cpp: 'c++', cs: 'c#', kt: 'kotlin',
+};
+
+function enhanceCodeBlocks(el) {
+  el.querySelectorAll('pre:not(.enhanced)').forEach(pre => {
+    pre.classList.add('enhanced');
+    const codeEl = pre.querySelector('code');
+    const rawText = codeEl ? codeEl.innerText : pre.innerText;
+    if (codeEl && typeof hljs !== 'undefined') hljs.highlightElement(codeEl);
+    let lang = '';
+    if (codeEl) {
+      const cls = [...codeEl.classList].find(c => c.startsWith('language-'));
+      if (cls) { const raw = cls.replace('language-', '').toLowerCase(); lang = LANG_ALIASES[raw] || raw; }
+    }
+    const wrap = document.createElement('div');
+    wrap.className = 'code-block-wrap';
+    const toolbar = document.createElement('div');
+    toolbar.className = 'code-toolbar';
+    const label = document.createElement('span');
+    label.className = 'code-lang-label';
+    label.textContent = lang || 'code';
+    const copyBtn = document.createElement('button');
+    copyBtn.className = 'code-copy-btn';
+    copyBtn.innerHTML = '<i class="fa-regular fa-copy"></i> نسخ الكود';
+    copyBtn.addEventListener('click', async () => {
+      try {
+        await navigator.clipboard.writeText(rawText);
+        copyBtn.innerHTML = '<i class="fa-solid fa-check"></i> تم النسخ';
+        copyBtn.classList.add('copied');
+        setTimeout(() => { copyBtn.innerHTML = '<i class="fa-regular fa-copy"></i> نسخ الكود'; copyBtn.classList.remove('copied'); }, 2000);
+      } catch {}
+    });
+    toolbar.append(label, copyBtn);
+    wrap.appendChild(toolbar);
+    pre.parentNode.insertBefore(wrap, pre);
+    wrap.appendChild(pre);
+  });
+}
+
+const chatWindow       = document.getElementById('chatWindow');
+const userInput        = document.getElementById('userInput');
+const sendBtn          = document.getElementById('sendBtn');
+const stopBtn          = document.getElementById('stopBtn');
+const newChatBtn       = document.getElementById('newChatBtn');
+const chatsList        = document.getElementById('chatsList');
+const themeToggle      = document.getElementById('themeToggle');
+const themeIcon        = document.getElementById('themeIcon');
+const modelSelect      = document.getElementById('modelSelect');
+const hamburgerBtn     = document.getElementById('hamburgerBtn');
+const sidebar          = document.getElementById('sidebar');
+const sidebarOverlay   = document.getElementById('sidebarOverlay');
 const chatTitleDisplay = document.getElementById('chatTitleDisplay');
 
-// ---------- البيانات ----------
 const STORAGE_KEY = 'shadmini_chats_v6';
 let chats = JSON.parse(localStorage.getItem(STORAGE_KEY) || '{}');
 let activeChatId = null;
 let isGenerating = false;
-let abortTyping = false;   // للتحكم بتأثير الكتابة
+let abortTyping = false;
 let currentTypingElement = null;
 
-// ---------- دوال المساعدة ----------
 function save() { localStorage.setItem(STORAGE_KEY, JSON.stringify(chats)); }
 function uid() { return Date.now().toString(36) + Math.random().toString(36).slice(2, 8); }
 
@@ -51,7 +94,6 @@ function renderChatList() {
     item.append(icon, nameSpan, delBtn);
     item.addEventListener('click', () => switchChat(id));
     delBtn.addEventListener('click', (e) => { e.stopPropagation(); deleteChat(id); });
-    // إعادة تسمية بالضغط المزدوج
     nameSpan.addEventListener('dblclick', (e) => {
       e.stopPropagation();
       const input = document.createElement('input');
@@ -169,47 +211,13 @@ function buildAiActions(content, index, row) {
     if (isGenerating) return;
     const chat = chats[activeChatId];
     if (!chat?.messages) return;
-    chat.messages.splice(index, 1); // حذف الرد الحالي
+    chat.messages.splice(index, 1);
     save();
     renderMessages();
     sendToAI();
   });
   actions.append(copyBtn, regenBtn);
   return actions;
-}
-
-function enhanceCodeBlocks(el) {
-  el.querySelectorAll('pre:not(.enhanced)').forEach(pre => {
-    pre.classList.add('enhanced');
-    const codeEl = pre.querySelector('code');
-    const rawText = codeEl ? codeEl.innerText : pre.innerText;
-    if (codeEl && typeof hljs !== 'undefined') hljs.highlightElement(codeEl);
-    let lang = '';
-    if (codeEl) {
-      const cls = [...codeEl.classList].find(c => c.startsWith('language-'));
-      if (cls) lang = cls.replace('language-', '').toLowerCase();
-    }
-    const wrap = document.createElement('div');
-    wrap.className = 'code-block-wrap';
-    const toolbar = document.createElement('div');
-    toolbar.className = 'code-toolbar';
-    const label = document.createElement('span');
-    label.className = 'code-lang-label';
-    label.textContent = lang || 'code';
-    const copyBtn = document.createElement('button');
-    copyBtn.className = 'code-copy-btn';
-    copyBtn.innerHTML = '<i class="fa-regular fa-copy"></i> نسخ الكود';
-    copyBtn.addEventListener('click', async () => {
-      await navigator.clipboard.writeText(rawText);
-      copyBtn.innerHTML = '<i class="fa-solid fa-check"></i> تم النسخ';
-      copyBtn.classList.add('copied');
-      setTimeout(() => { copyBtn.innerHTML = '<i class="fa-regular fa-copy"></i> نسخ الكود'; copyBtn.classList.remove('copied'); }, 2000);
-    });
-    toolbar.append(label, copyBtn);
-    wrap.appendChild(toolbar);
-    pre.parentNode.insertBefore(wrap, pre);
-    wrap.appendChild(pre);
-  });
 }
 
 function showTypingIndicator() {
@@ -240,8 +248,7 @@ function scrollToBottom() {
   chatWindow.scrollTop = chatWindow.scrollHeight;
 }
 
-// تأثير الكتابة (typing effect) محلي
-async function typewrite(element, text, speed = 20) {
+async function typewrite(element, text, speed = 15) {
   element.innerHTML = '';
   abortTyping = false;
   currentTypingElement = element;
@@ -314,15 +321,13 @@ async function sendToAI() {
     const data = await res.json();
     const aiText = data.result || '⚠️ رد فارغ';
 
-    // إنشاء فقاعة AI فارغة ثم تطبيق تأثير الكتابة
     const aiRow = appendMessage('assistant', '', chat.messages.length);
     const aiBubble = aiRow.querySelector('.bubble');
-    await typewrite(aiBubble, aiText, 20);
+    await typewrite(aiBubble, aiText, 15);
     const finalText = aiBubble.textContent.replace(' ⏹️', '');
     chat.messages.push({ role: 'assistant', content: finalText });
     chat.lastUpdated = Date.now();
     save();
-    // تحديث الفقاعة بالأزرار بعد الكتابة
     aiRow.querySelector('.ai-actions')?.remove();
     aiRow.appendChild(buildAiActions(finalText, chat.messages.length - 1, aiRow));
     enhanceCodeBlocks(aiBubble);
@@ -343,7 +348,6 @@ async function sendToAI() {
 function stopGeneration() {
   if (isGenerating) {
     abortTyping = true;
-    // لن نوقف الـ fetch لكن سنوقف تأثير الكتابة
     isGenerating = false;
     sendBtn.disabled = false;
     stopBtn.style.display = 'none';
@@ -381,7 +385,6 @@ function closeSidebar() {
   sidebarOverlay.classList.remove('active');
 }
 
-// ---------- الأحداث ----------
 sendBtn.addEventListener('click', handleSend);
 stopBtn.addEventListener('click', stopGeneration);
 newChatBtn.addEventListener('click', createNewChat);
@@ -404,12 +407,10 @@ themeToggle.addEventListener('click', () => {
   const isDark = document.body.classList.contains('dark-mode');
   themeIcon.className = isDark ? 'fa-solid fa-moon' : 'fa-solid fa-sun';
   localStorage.setItem('theme', isDark ? 'dark' : 'light');
-  // تحديث أوراق أنماط highlight.js
   document.getElementById('hljs-dark').disabled = !isDark;
   document.getElementById('hljs-light').disabled = isDark;
 });
 
-// تحميل الثيم من localStorage
 const savedTheme = localStorage.getItem('theme');
 if (savedTheme === 'light') {
   document.body.classList.remove('dark-mode');
@@ -419,7 +420,6 @@ if (savedTheme === 'light') {
   document.getElementById('hljs-light').disabled = false;
 }
 
-// بدء التطبيق
 (function init() {
   const ids = Object.keys(chats);
   if (ids.length > 0) {

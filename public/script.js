@@ -148,7 +148,11 @@ function buildWelcomeScreen() {
   const div = document.createElement('div');
   div.className = 'welcome-screen';
   div.innerHTML = `
-    <div class="welcome-icon"><i class="fa-solid fa-microchip-ai"></i></div>
+    <div class="welcome-icon" style="background: none; width: 80px; height: 80px;">
+      <img src="https://i.ibb.co/v6NNkBKD/Green-and-Black-Modern-Technology-Logo-2.png" 
+           alt="ShadMini AI Logo" 
+           style="width: 100%; height: 100%; object-fit: contain; border-radius: 16px;" />
+    </div>
     <h2 class="welcome-title">مرحباً بك في ShadMini AI</h2>
     <p class="welcome-sub">مساعدك الذكي — اسأل أي شيء</p>
     <div class="welcome-suggestions">
